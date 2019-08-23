@@ -169,16 +169,21 @@ module LogStash
 
       private
 
-      def declare_exchange!(channel, exchange, exchange_type, durable)
+      # passive really needs to be false by default, but I have a
+      # broken system and don't have time right now to figure out why
+      # the output plugin isn't passing the option through, so I'm
+      # just hard-coding this here and will only build and install
+      # this as a local plugin until I can figure out a better option.
+      def declare_exchange!(channel, exchange, exchange_type, durable, passive = true)
         @logger.debug? && @logger.debug("Declaring an exchange", :name => exchange,
-                      :type => exchange_type, :durable => durable)
-        exchange = channel.exchange(exchange, :type => exchange_type.to_sym, :durable => durable)
+                      :type => exchange_type, :durable => durable, :passive => passive)
+        exchange = channel.exchange(exchange, :type => exchange_type.to_sym, :durable => durable, :passive => passive)
         @logger.debug? && @logger.debug("Exchange declared")
         exchange
       rescue StandardError => e
         @logger.error("Could not declare exchange!",
                       :exchange => exchange, :type => exchange_type,
-                      :durable => durable, :error_class => e.class.name,
+                      :durable => durable, :passive => passive, :error_class => e.class.name,
                       :error_message => e.message, :backtrace => e.backtrace)
         raise e
       end
